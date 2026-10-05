@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuestros Recuerdos 💙</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:'Inter',sans-serif;color:#1e293b;background-color:#f1f5f9;background-image:radial-gradient(#94a3b8 1.4px,transparent 1.4px);background-size:22px 22px}
+.font-hand{font-family:'Caveat',cursive}.font-serif-title{font-family:'Playfair Display',Georgia,serif}
+.polaroid-frame{background:#fff;padding:10px 10px 36px;box-shadow:0 10px 25px -5px rgba(30,58,138,.15);border:1px solid rgba(148,163,184,.25);transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+.stack-group:hover .stack-layer-1{transform:rotate(-10deg) translate(-14px,-8px) scale(1.03)}
+.stack-group:hover .stack-layer-2{transform:rotate(10deg) translate(16px,-4px) scale(1.03)}
+.stack-group:hover .stack-layer-3{transform:rotate(-2deg) translate(0,-12px) scale(1.05)}
+.washi{position:absolute;top:-12px;left:50%;transform:translateX(-50%) rotate(-2deg);width:90px;height:24px;background:rgba(186,214,243,.85);border-left:2px dashed rgba(30,58,138,.2);border-right:2px dashed rgba(30,58,138,.2);z-index:30}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.animate-fade-in{animation:fadeInUp .45s ease-out forwards}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid #38bdf8;transition:all .2s}
+.pin-dot.filled{background:#38bdf8;box-shadow:0 0 10px rgba(56,189,248,.8)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.shake{animation:shake .4s ease-in-out}
+</style>
+</head>
+<body class="min-h-screen pb-20">
+
+<!-- PIN -->
+<div id="loginScreen" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
+  <div id="pinCard" class="bg-slate-900/90 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center text-white">
+    <div class="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-heart text-2xl animate-pulse"></i></div>
+    <h2 class="font-serif-title text-2xl font-bold text-sky-100">Nuestros Recuerdos</h2>
+    <p class="text-xs text-sky-300/80 mt-1 mb-6">Ingresa el código secreto para abrir nuestro diario</p>
+    <div id="pinDots" class="flex justify-center gap-4 mb-6"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+    <p id="pinError" class="text-xs text-rose-400 min-h-[18px] mb-4 font-medium"></p>
+    <div id="keypad" class="grid grid-cols-3 gap-3 max-w-[220px] mx-auto">
+                <button onclick="pressPinDigit('1')" class="h-12 rounded-2xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-lg font-semibold transition flex items-center justify-center border border-slate-700/60">1</button>
+                <button onclick="pressPinDigit('2')" class="h-12 rounded-2xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-lg font-semibold transition flex items-center justify-center border border-slate-700/60">2</button>
+                <button onclick="pressPinDigit('3')" class="h-12 rounded-2xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-lg font-semibold transition flex items-center justify-center border border-slate-700/60">3</button>
+                <button onclick="pressPinDigit('4')" class="h-12 rounded-2xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-lg font-semibold transition flex items-center justify-center border border-slate-700/60">4</button>
+                <button onclick="pressPinDigit('5')" class="h-12 rounded-2xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-lg font-semibold transition flex items-center justify-center border border-slate-700/60">5</button>
+                <button onclick="pressPinDigit('6')" class="h-12 rounded-2xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-lg font-semibold transition flex items-center justify-center border border-slate-700/60">6</button>
+                <button onclick="pressPinDigit('7')" class="h-12 rounded-2xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-lg font-semibold transition flex items-center justify-center border border-slate-700/60">7</button>
+                <button onclick="pressPinDigit('8')" class="h-12 rounded-2xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-lg font-semibold transition flex items-center justify-center border border-slate-700/60">8</button>
+                <button onclick="pressPinDigit('9')" class="h-12 rounded-2xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-lg font-semibold transition flex items-center justify-center border border-slate-700/60">9</button>
+                <button onclick="clearPin()" class="h-12 rounded-2xl bg-slate-800/40 hover:bg-slate-700/50 text-slate-400 active:scale-95 text-xs transition flex items-center justify-center border border-slate-700/40"><i class="fa-solid fa-delete-left"></i></button>
+                <button onclick="pressPinDigit('0')" class="h-12 rounded-2xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-lg font-semibold transition flex items-center justify-center border border-slate-700/60">0</button>
+                <button onclick="clearPin()" class="h-12 rounded-2xl bg-slate-800/40 hover:bg-slate-700/50 text-slate-400 active:scale-95 text-xs transition flex items-center justify-center border border-slate-700/40">C</button>
+            </div>
+  </div>
+</div>
+
+<header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md text-white border-b border-slate-800 shadow-md">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center"><i class="fa-solid fa-heart text-lg"></i></div>
+      <div><h1 class="font-serif-title font-bold text-xl sm:text-2xl text-sky-50">Nuestros Recuerdos</h1><p class="text-[11px] text-sky-200">Diario de amor 💙</p></div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="logout()" title="Bloquear diario" class="p-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 text-xs"><i class="fa-solid fa-right-from-bracket text-rose-400"></i></button>
+      <button onclick="openNewModal()" class="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2"><i class="fa-solid fa-plus text-xs"></i><span>Nuevo Recuerdo</span></button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 pt-6 sm:pt-8">
+  <div class="mb-6 bg-white/80 border border-sky-100 rounded-3xl p-5 sm:p-7 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+    <div>
+      <h2 class="font-serif-title text-2xl sm:text-3xl text-slate-800 font-bold">Cada momento a tu lado</h2>
+      <p class="text-slate-600 text-xs sm:text-sm mt-1">Nuestros recuerdos, guardados en la nube y ordenados por fecha.</p>
+    </div>
+    <div class="flex items-center gap-4 text-xs font-semibold bg-sky-50 px-5 py-2.5 rounded-2xl border border-sky-200 justify-around">
+      <div class="text-center"><span id="totalEntriesCount" class="block text-sky-700 text-lg font-bold">0</span><span class="text-[11px] text-slate-500">Recuerdos</span></div>
+      <div class="h-6 w-px bg-sky-200"></div>
+      <div class="text-center"><span id="totalPhotosCount" class="block text-sky-700 text-lg font-bold">0</span><span class="text-[11px] text-slate-500">Fotos</span></div>
+    </div>
+  </div>
+
+  <div class="mb-8 flex items-center justify-between bg-white/70 border border-sky-100 rounded-2xl px-4 py-3">
+    <span class="text-xs font-bold text-slate-700"><i class="fa-solid fa-arrow-down-short-wide text-sky-600"></i> Orden por fecha:</span>
+    <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+      <button id="sortDescBtn" onclick="setSortOrder('desc')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-blue-700">Recientes</button>
+      <button id="sortAscBtn" onclick="setSortOrder('asc')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600">Antiguos</button>
+    </div>
+  </div>
+
+  <div id="loading" class="text-center text-slate-500 text-sm py-10 hidden"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando recuerdos...</div>
+  <div id="entriesContainer" class="space-y-10 sm:space-y-14"></div>
+
+  <div id="emptyState" class="hidden text-center py-16 px-6 bg-white/60 border-2 border-dashed border-sky-200 rounded-3xl">
+    <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-heart-circle-plus"></i></div>
+    <h3 class="font-serif-title text-2xl font-bold text-slate-800">Aún no hay recuerdos guardados</h3>
+    <p class="text-slate-500 text-sm max-w-md mx-auto mt-2">Comienza agregando tu primer recuerdo con fecha, lugar y fotografías.</p>
+    <button onclick="openNewModal()" class="mt-6 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl text-sm"><i class="fa-solid fa-plus"></i> Agregar nuestro primer recuerdo</button>
+  </div>
+</main>
+
+<!-- MODAL NUEVO/EDITAR -->
+<div id="entryModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 hidden overflow-y-auto">
+  <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden my-auto">
+    <div class="bg-gradient-to-r from-slate-900 to-blue-950 px-6 py-4 flex justify-between items-center text-white">
+      <h3 id="modalTitle" class="font-serif-title font-bold text-lg">Nuevo Recuerdo</h3>
+      <button onclick="closeModal()" class="w-8 h-8 hover:bg-white/10 rounded-full"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <form onsubmit="handleFormSubmit(event)" class="p-5 sm:p-6 space-y-4">
+      <input type="hidden" id="editingEntryId">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div><label class="block text-xs font-bold uppercase text-slate-600 mb-1">📍 Lugar / Cita</label>
+          <input id="locationInput" required placeholder="Ej: Café del centro" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-sky-500"></div>
+        <div><label class="block text-xs font-bold uppercase text-slate-600 mb-1">📅 Fecha</label>
+          <input type="date" id="dateInput" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-sky-500"></div>
+      </div>
+      <div><label class="block text-xs font-bold uppercase text-slate-600 mb-1">✍️ Nuestra Historia</label>
+        <textarea id="textInput" rows="4" required placeholder="Escribe aquí los momentos hermosos..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-sky-500 resize-y"></textarea></div>
+      <div><label class="block text-xs font-bold uppercase text-slate-600 mb-1">📸 Fotografías</label>
+        <div onclick="document.getElementById('imageFileInput').click()" class="border-2 border-dashed border-sky-300 bg-sky-50/50 rounded-2xl p-4 text-center cursor-pointer">
+          <i class="fa-solid fa-cloud-arrow-up text-2xl text-sky-600"></i>
+          <p class="text-xs font-medium text-slate-700">Toca para seleccionar tus fotos</p>
+          <input type="file" id="imageFileInput" multiple accept="image/*" class="hidden" onchange="handleImageSelect(event)">
+        </div>
+        <div id="imagePreviewContainer" class="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-3 empty:hidden"></div>
+      </div>
+      <div class="pt-3 border-t border-slate-100 flex justify-end gap-2.5">
+        <button type="button" onclick="closeModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 text-sm rounded-xl">Cancelar</button>
+        <button type="submit" id="saveBtn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-xl flex items-center gap-2"><i class="fa-solid fa-heart"></i><span>Guardar Recuerdo</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightboxModal" class="fixed inset-0 z-50 bg-slate-950/95 flex flex-col justify-between p-3 sm:p-6 hidden">
+  <div class="flex items-center justify-between text-white max-w-5xl mx-auto w-full">
+    <div><h3 id="lightboxLocation" class="font-serif-title font-bold text-lg sm:text-2xl">📍</h3><p id="lightboxDate" class="text-xs text-sky-300"></p></div>
+    <div class="flex items-center gap-3">
+      <span id="lightboxCounter" class="text-xs bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700"></span>
+      <button onclick="closeLightbox()" class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+  <div id="lightboxStage" class="relative flex-1 flex items-center justify-center my-3 overflow-hidden">
+    <button onclick="prevLightboxImage()" class="absolute left-1 sm:left-4 z-20 w-10 h-10 rounded-full bg-slate-900/80 text-white border border-slate-700"><i class="fa-solid fa-chevron-left"></i></button>
+    <img id="lightboxImage" src="" alt="Foto" class="max-h-[70vh] max-w-full object-contain rounded-xl shadow-2xl">
+    <button onclick="nextLightboxImage()" class="absolute right-1 sm:right-4 z-20 w-10 h-10 rounded-full bg-slate-900/80 text-white border border-slate-700"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+  <div id="lightboxThumbnails" class="flex justify-center gap-2 overflow-x-auto py-2 max-w-3xl mx-auto w-full"></div>
+</div>
+
+<!-- CONFIRMAR BORRADO -->
+<div id="deleteModal" class="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 hidden">
+  <div class="bg-white max-w-sm w-full rounded-2xl p-6 shadow-2xl">
+    <h3 class="font-serif-title font-bold text-xl text-slate-800">¿Eliminar recuerdo?</h3>
+    <p class="text-slate-600 text-sm mt-1.5">Se eliminará permanentemente este momento y sus fotos.</p>
+    <div class="flex justify-end gap-2.5 mt-5">
+      <button onclick="closeDeleteModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl text-sm">Cancelar</button>
+      <button id="confirmDeleteBtn" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastMessage" class="fixed bottom-6 right-6 z-[60] bg-slate-900 text-white text-sm px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+  <i id="toastIcon" class="fa-solid fa-circle-check text-sky-400"></i><span id="toastText"></span>
+</div>
+
+<script>
+/* ====== CONFIGURACIÓN: pega aquí tus datos de Supabase ====== */
+const SUPABASE_URL = 'https://nnatjhgldipovgpjaqph.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uYXRqaGdsZGlwb3ZncGphcXBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExNjA4MjAsImV4cCI6MjEwNjczNjgyMH0.WhaRhhShbzTjCxRbILye9XzrYrQKzliKbUXcTIFWYNQ';
+/* ============================================================ */
+
+const BUCKET = 'fotos';
+let sb = null;
+try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: true } }); }
+catch (e) { console.error('Supabase no configurado:', e); }
+let userId = null, entries = [], urlMap = {}, formImages = [], originalPaths = [];
+let sortDirection = 'desc', deleteTargetId = null, lbEntry = null, lbIndex = 0;
+
+/* ---------- PIN y sesión ---------- */
+const DIARIO_EMAIL = 'diario@nuestrosrecuerdos.app'; // mismo correo que crees en Supabase
+const PIN_PREFIX = 'diario-0911';                        // la contraseña en Supabase es: diario-0911
+let enteredPin = '', pinBusy = false;
+
+function updatePinDots() {
+  document.querySelectorAll('#pinDots .pin-dot').forEach((d, i) => d.classList.toggle('filled', i < enteredPin.length));
+}
+function clearPin() { enteredPin = ''; updatePinDots(); document.getElementById('pinError').textContent = ''; }
+function pressPinDigit(d) {
+  if (pinBusy || enteredPin.length >= 4) return;
+  enteredPin += d; updatePinDots();
+  if (enteredPin.length === 4) submitPin();
+}
+async function submitPin() {
+  if (!sb) { document.getElementById('pinError').textContent = 'Falta pegar tus claves de Supabase en el archivo'; enteredPin = ''; updatePinDots(); return; }
+  pinBusy = true;
+  const { error } = await sb.auth.signInWithPassword({ email: DIARIO_EMAIL, password: PIN_PREFIX + enteredPin });
+  if (error) {
+    document.getElementById('pinError').textContent = 'PIN incorrecto, intenta de nuevo';
+    const card = document.getElementById('pinCard');
+    card.classList.add('shake');
+    setTimeout(() => { card.classList.remove('shake'); enteredPin = ''; updatePinDots(); pinBusy = false; }, 400);
+  } else { pinBusy = false; }
+}
+async function logout() { if (sb) await sb.auth.signOut(); showToast('Diario bloqueado 🔒', 'info'); }
+
+window.addEventListener('keydown', e => {
+  if (document.getElementById('loginScreen').classList.contains('hidden')) return;
+  if (e.key >= '0' && e.key <= '9') pressPinDigit(e.key);
+  else if (e.key === 'Backspace') clearPin();
+});
+
+if (sb) sb.auth.onAuthStateChange((_ev, session) => {
+  const lock = document.getElementById('loginScreen');
+  if (session) {
+    userId = session.user.id;
+    lock.classList.add('hidden');
+    loadEntries();
+  } else {
+    userId = null; entries = []; urlMap = {}; renderEntries();
+    clearPin(); pinBusy = false;
+    lock.classList.remove('hidden');
+  }
+});
+
+/* ---------- Datos ---------- */
+async function loadEntries() {
+  document.getElementById('loading').classList.remove('hidden');
+  const { data, error } = await sb.from('recuerdos').select('*');
+  document.getElementById('loading').classList.add('hidden');
+  if (error) { showToast('Error al cargar los recuerdos', 'error'); console.error(error); return; }
+  entries = data || [];
+  const paths = entries.flatMap(e => e.images || []);
+  urlMap = {};
+  if (paths.length) {
+    const { data: signed } = await sb.storage.from(BUCKET).createSignedUrls(paths, 3600);
+    (signed || []).forEach(s => { if (s.signedUrl) urlMap[s.path] = s.signedUrl; });
+  }
+  entries.forEach(e => e.urls = (e.images || []).map(p => urlMap[p]).filter(Boolean));
+  sortEntries(); renderEntries(); updateStats();
+}
+function sortEntries() {
+  entries.sort((a, b) => sortDirection === 'desc' ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date));
+}
+function setSortOrder(order) {
+  sortDirection = order;
+  const on = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-blue-700', off = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600';
+  document.getElementById('sortDescBtn').className = order === 'desc' ? on : off;
+  document.getElementById('sortAscBtn').className = order === 'asc' ? on : off;
+  sortEntries(); renderEntries();
+}
+function updateStats() {
+  document.getElementById('totalEntriesCount').textContent = entries.length;
+  document.getElementById('totalPhotosCount').textContent = entries.reduce((n, e) => n + (e.urls ? e.urls.length : 0), 0);
+}
+
+/* ---------- Render ---------- */
+function renderEntries() {
+  const c = document.getElementById('entriesContainer'), empty = document.getElementById('emptyState');
+  if (!entries.length) { c.innerHTML = ''; empty.classList.toggle('hidden', !userId); updateStats(); return; }
+  empty.classList.add('hidden');
+  c.innerHTML = entries.map((e, i) => {
+    const stack = photoStack(e), details = detailsHTML(e);
+    return `
+    <article class="bg-white/90 border border-sky-100 rounded-3xl p-5 sm:p-8 shadow-sm hover:shadow-md transition-shadow animate-fade-in relative">
+      <div class="absolute top-4 right-4 flex gap-1.5 z-20">
+        <button onclick="editEntry('${e.id}')" title="Editar" class="w-8 h-8 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-full"><i class="fa-regular fa-pen-to-square text-sm"></i></button>
+        <button onclick="promptDelete('${e.id}')" title="Eliminar" class="w-8 h-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full"><i class="fa-regular fa-trash-can text-sm"></i></button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
+        ${i % 2 === 0
+          ? `<div class="order-1 flex justify-center py-2">${stack}</div><div class="order-2">${details}</div>`
+          : `<div class="order-2 md:order-1">${details}</div><div class="order-1 md:order-2 flex justify-center py-2">${stack}</div>`}
+      </div>
+    </article>`;
+  }).join('');
+  updateStats();
+}
+function photoStack(e) {
+  const p = e.urls && e.urls.length ? e.urls : ['https://placehold.co/600x600/e2e8f0/64748b?text=Sin+Foto'];
+  return `
+  <div class="relative w-56 h-64 sm:w-64 sm:h-72 cursor-pointer stack-group select-none" onclick="openLightbox('${e.id}',0)">
+    <div class="washi"></div>
+    ${p.length > 2 ? `<div class="absolute inset-0 polaroid-frame rounded-sm stack-layer-1 -rotate-6 scale-95"><img src="${p[2]}" class="w-full h-40 sm:h-48 object-cover" alt="Foto"></div>` : ''}
+    ${p.length > 1 ? `<div class="absolute inset-0 polaroid-frame rounded-sm stack-layer-2 rotate-6"><img src="${p[1]}" class="w-full h-40 sm:h-48 object-cover" alt="Foto"></div>` : ''}
+    <div class="absolute inset-0 polaroid-frame rounded-sm stack-layer-3 -rotate-1">
+      <img src="${p[0]}" class="w-full h-40 sm:h-48 object-cover" alt="${escapeHTML(e.location)}">
+      <div class="mt-2.5 flex items-center justify-between px-1">
+        <span class="font-hand text-lg text-slate-700 truncate max-w-[150px]">${escapeHTML(e.location)}</span>
+        <span class="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full border border-sky-200">📸 ${e.urls ? e.urls.length : 0}</span>
+      </div>
+    </div>
+  </div>`;
+}
+function detailsHTML(e) {
+  return `
+  <div class="space-y-2.5">
+    <div class="flex items-start gap-2"><span class="text-xl mt-0.5">📍</span>
+      <h3 class="font-serif-title font-bold text-xl sm:text-2xl text-slate-800 leading-tight">${escapeHTML(e.location)}</h3></div>
+    <div class="flex items-center gap-2 text-sky-800 text-xs font-semibold bg-sky-50 w-fit px-3 py-1 rounded-lg border border-sky-200">
+      <i class="fa-regular fa-calendar-check text-sky-600"></i><span>${formatDate(e.date)}</span></div>
+    <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line pt-1">${escapeHTML(e.text)}</p>
+  </div>`;
+}
+
+/* ---------- Fotos ---------- */
+function compressImage(file, max = 1600, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > max || h > max) { if (w > h) { h = Math.round(h * max / w); w = max; } else { w = Math.round(w * max / h); h = max; } }
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      cv.toBlob(b => b ? resolve(b) : reject(new Error('blob')), 'image/jpeg', quality);
+    };
+    img.onerror = reject; img.src = url;
+  });
+}
+async function handleImageSelect(ev) {
+  for (const f of Array.from(ev.target.files)) {
+    try { const blob = await compressImage(f); formImages.push({ path: null, blob, preview: URL.createObjectURL(blob) }); }
+    catch (e) { console.error(e); }
+  }
+  ev.target.value = ''; renderImagePreviews();
+}
+function renderImagePreviews() {
+  document.getElementById('imagePreviewContainer').innerHTML = formImages.map((f, i) => `
+    <div class="relative aspect-square rounded-xl overflow-hidden border border-slate-200">
+      <img src="${f.preview}" class="w-full h-full object-cover">
+      <button type="button" onclick="removeSelectedImage(${i})" class="absolute top-1 right-1 w-5 h-5 bg-slate-900/80 text-white rounded-full text-[10px] hover:bg-rose-600"><i class="fa-solid fa-xmark"></i></button>
+    </div>`).join('');
+}
+function removeSelectedImage(i) { formImages.splice(i, 1); renderImagePreviews(); }
+
+/* ---------- Guardar / editar / borrar ---------- */
+async function handleFormSubmit(ev) {
+  ev.preventDefault();
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Guardando...</span>';
+  const id = document.getElementById('editingEntryId').value;
+  try {
+    const paths = [];
+    for (const f of formImages) {
+      if (f.path) { paths.push(f.path); continue; }
+      const p = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const { error } = await sb.storage.from(BUCKET).upload(p, f.blob, { contentType: 'image/jpeg' });
+      if (error) throw error;
+      paths.push(p);
+    }
+    const row = {
+      location: document.getElementById('locationInput').value.trim(),
+      date: document.getElementById('dateInput').value,
+      text: document.getElementById('textInput').value.trim(),
+      images: paths
+    };
+    const { error } = id ? await sb.from('recuerdos').update(row).eq('id', id) : await sb.from('recuerdos').insert(row);
+    if (error) throw error;
+    const removed = originalPaths.filter(p => !paths.includes(p));
+    if (removed.length) await sb.storage.from(BUCKET).remove(removed);
+    closeModal(); await loadEntries();
+    showToast(id ? 'Recuerdo actualizado' : 'Recuerdo guardado', 'success');
+  } catch (e) {
+    console.error(e); showToast('Error al guardar el recuerdo', 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-heart"></i> <span>Guardar Recuerdo</span>';
+  }
+}
+function editEntry(id) {
+  const e = entries.find(x => x.id === id); if (!e) return;
+  document.getElementById('editingEntryId').value = e.id;
+  document.getElementById('modalTitle').textContent = 'Editar Recuerdo';
+  document.getElementById('locationInput').value = e.location;
+  document.getElementById('dateInput').value = e.date;
+  document.getElementById('textInput').value = e.text;
+  originalPaths = [...(e.images || [])];
+  formImages = originalPaths.filter(p => urlMap[p]).map(p => ({ path: p, blob: null, preview: urlMap[p] }));
+  renderImagePreviews();
+  document.getElementById('entryModal').classList.remove('hidden');
+}
+function openNewModal() {
+  document.getElementById('editingEntryId').value = '';
+  document.getElementById('modalTitle').textContent = 'Nuevo Recuerdo';
+  document.getElementById('locationInput').value = '';
+  document.getElementById('textInput').value = '';
+  document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+  originalPaths = []; formImages = []; renderImagePreviews();
+  document.getElementById('entryModal').classList.remove('hidden');
+}
+function closeModal() { document.getElementById('entryModal').classList.add('hidden'); }
+
+function promptDelete(id) {
+  deleteTargetId = id;
+  document.getElementById('deleteModal').classList.remove('hidden');
+  document.getElementById('confirmDeleteBtn').onclick = executeDelete;
+}
+function closeDeleteModal() { document.getElementById('deleteModal').classList.add('hidden'); deleteTargetId = null; }
+async function executeDelete() {
+  const e = entries.find(x => x.id === deleteTargetId); if (!e) return;
+  try {
+    if (e.images && e.images.length) await sb.storage.from(BUCKET).remove(e.images);
+    const { error } = await sb.from('recuerdos').delete().eq('id', e.id);
+    if (error) throw error;
+    entries = entries.filter(x => x.id !== e.id);
+    renderEntries(); closeDeleteModal(); showToast('Recuerdo eliminado', 'info');
+  } catch (err) { console.error(err); showToast('Error al eliminar', 'error'); }
+}
+
+/* ---------- Lightbox ---------- */
+function openLightbox(id, i = 0) {
+  const e = entries.find(x => x.id === id); if (!e || !e.urls.length) return;
+  lbEntry = e; lbIndex = i;
+  document.getElementById('lightboxLocation').textContent = '📍 ' + e.location;
+  document.getElementById('lightboxDate').textContent = formatDate(e.date);
+  updateLightbox();
+  document.getElementById('lightboxModal').classList.remove('hidden');
+  document.addEventListener('keydown', lbKeys);
+}
+function updateLightbox() {
+  const u = lbEntry.urls;
+  document.getElementById('lightboxImage').src = u[lbIndex];
+  document.getElementById('lightboxCounter').textContent = `${lbIndex + 1} / ${u.length}`;
+  document.getElementById('lightboxThumbnails').innerHTML = u.map((s, i) => `
+    <button onclick="lbIndex=${i};updateLightbox()" class="w-12 h-12 rounded-lg overflow-hidden border-2 ${i === lbIndex ? 'border-sky-400 scale-110' : 'border-slate-800 opacity-50'}"><img src="${s}" class="w-full h-full object-cover"></button>`).join('');
+}
+function prevLightboxImage() { lbIndex = (lbIndex - 1 + lbEntry.urls.length) % lbEntry.urls.length; updateLightbox(); }
+function nextLightboxImage() { lbIndex = (lbIndex + 1) % lbEntry.urls.length; updateLightbox(); }
+function closeLightbox() { document.getElementById('lightboxModal').classList.add('hidden'); document.removeEventListener('keydown', lbKeys); }
+function lbKeys(e) { if (e.key === 'Escape') closeLightbox(); if (e.key === 'ArrowLeft') prevLightboxImage(); if (e.key === 'ArrowRight') nextLightboxImage(); }
+(() => {
+  let sx = 0; const st = document.getElementById('lightboxStage');
+  st.addEventListener('touchstart', e => sx = e.changedTouches[0].screenX, { passive: true });
+  st.addEventListener('touchend', e => { const d = e.changedTouches[0].screenX - sx; if (d < -40) nextLightboxImage(); else if (d > 40) prevLightboxImage(); }, { passive: true });
+})();
+
+/* ---------- Utilidades ---------- */
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toastMessage');
+  document.getElementById('toastText').textContent = msg;
+  document.getElementById('toastIcon').className = type === 'error' ? 'fa-solid fa-triangle-exclamation text-rose-400' : type === 'info' ? 'fa-solid fa-circle-info text-sky-400' : 'fa-solid fa-circle-check text-emerald-400';
+  t.classList.remove('translate-y-20', 'opacity-0');
+  setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
+}
+function formatDate(s) {
+  if (!s) return ''; const p = s.split('-'); if (p.length < 3) return s;
+  return new Date(p[0], p[1] - 1, p[2]).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+function escapeHTML(s) {
+  return (s || '').replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t]));
+}
+</script>
+</body>
+</html>
+
